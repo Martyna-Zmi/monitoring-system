@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  metrics-generator:
+    build: ./metrics-generator
+    container_name: metrics-generator
+    networks:
+      - monitoring-network
+    volumes:
+      - ./logs:/logs
+      - shared-data:/shared
+    restart: always
+
+  metrics-processor:
+    build: ./metrics-processor
+    container_name: metrics-processor
+    networks:
+      - monitoring-network
+    volumes:
+      - shared-data:/shared
+      - metrics-database:/db
+      - /state
+    tmpfs:
+      - /tmpfs
+    restart: always
+
+  metrics-api:
+    build: ./metrics-api
+    container_name: metrics-api
+    ports:
+      - "8080:8080"
+    networks:
+      - monitoring-network
+    volumes:
+      - metrics-database:/db
+    restart: always
+
+networks:
+  monitoring-network:
+    driver: bridge
+
+volumes:
+  metrics-database:
+  shared-data:
